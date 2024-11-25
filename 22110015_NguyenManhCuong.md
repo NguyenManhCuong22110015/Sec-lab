@@ -26,8 +26,8 @@ docker run --name receiver -it ubuntu
 and after that
 
 ```bash
-docker run -i receiver
-docker run -i sender
+docker exec -it sender /bin/bash
+docker exec -it receiver /bin/bash
 ```
 
 - finally 
