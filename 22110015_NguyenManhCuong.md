@@ -117,6 +117,10 @@ nano plaintext.txt
 
 ![image](https://github.com/user-attachments/assets/5eb2248e-11db-443d-9265-52384c8bc101)
 
+
+### Conclusion:
+
+- In this lab, I successfully transferred files between two Docker containers using Netcat and verified that the files were intact
  
 # Task 2: Transfering encrypted file and decrypt it with hybrid encryption. 
 **Question 1**:
