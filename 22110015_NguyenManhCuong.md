@@ -9,8 +9,10 @@ then veryfing at receiving side.
 
 ## 1. Set up 2 computers in docker 
 
+- Clone file from github
+
 ```bash
-https://github.com/quang-ute/Security-labs
+git clone https://github.com/quang-ute/Security-labs
 ```
 
 and run docker in  
