@@ -43,8 +43,25 @@ openssl sha256 file.txt > file.txt.hash
 ![image](https://github.com/user-attachments/assets/c98f1d7b-029a-49de-8d06-42d16d169571)
 
 
+```bash
+ docker cp file.tx outsider-10.9.0.5:/res/file.txt
+ docker cp file.tx.hash outsider-10.9.0.5:/res/file.txt.hash
+```
+![image](https://github.com/user-attachments/assets/2dc2584f-01dd-4f86-bef2-4a47881bf1c8)
 
+- Check in `outsider-10.9.0.5:/res`
+- 
+![image](https://github.com/user-attachments/assets/5daf53b8-722f-487c-8d67-5af18d240765)
 
+## 6.  Veryfing at receiving side
+
+```
+openssl sha256 file.txt > check.txt.hash
+```
+
+![image](https://github.com/user-attachments/assets/0d0908c0-5057-4797-8c28-6e963adafe49)
+
+ If the hashes of the original and received files are the same, you can trust that the file has not been tampered with during transfer and is intact.
  
 # Task 2: Transfering encrypted file and decrypt it with hybrid encryption. 
 **Question 1**:
@@ -54,6 +71,7 @@ All steps are made manually with openssl at the terminal of each computer.
 
 **Answer 1**:
 
+## 1. 
 
 # Task 3: Firewall configuration
 **Question 1**:
