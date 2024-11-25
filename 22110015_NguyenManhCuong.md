@@ -1,3 +1,4 @@
+# Lab #1,22110015, Nguyen Manh Cuong, INSE330380E_01FIE
 # Task 1: Transfer files between computers  
 **Question 1**: 
 Conduct transfering a single plaintext file between 2 computers, 
@@ -9,8 +10,17 @@ then veryfing at receiving side.
 ## 1. Set up 2 computers in docker 
 
 ```bash
+https://github.com/quang-ute/Security-labs
+```
+
+and run docker in  
+
+```bash
+cd Network/firewall
 docker-compose up -d
 ```
+
+![image](https://github.com/user-attachments/assets/1922078c-1684-44f3-9955-205fcf3b112e)
 
 ## 2. Use 2 computers
 
@@ -115,7 +125,6 @@ openssl rand -out secret_key.bin 32
 openssl enc -aes-256-cbc -in file_to_send.txt -out file_to_send.txt.enc -pass file:secret_key.bin
 ```
 
-![image](https://github.com/user-attachments/assets/38bda322-32d1-448a-b067-8a9ef7125401)
 
 
 ## 4. Encrypt the Secret Key (on Sender)
@@ -126,7 +135,33 @@ openssl enc -aes-256-cbc -in file_to_send.txt -out file_to_send.txt.enc -pass fi
 openssl rsautl -encrypt -inkey public_key.pem -pubin -in secret_key.bin -out secret_key.bin.enc
 ```
 
+![image](https://github.com/user-attachments/assets/38bda322-32d1-448a-b067-8a9ef7125401)
 
+
+## 5.  Transfer the Files
+
+```bash
+scp file_to_send.txt.enc secret_key.bin.enc outsider-10.9.0.5@10.9.0.5:/ret
+```
+
+## 6. Decrypt the Secret Key (on Receiver)
+
+```bash
+openssl rsautl -decrypt -inkey private_key.pem -in secret_key.bin.enc -out secret_key.bin
+```
+
+## 7.  Symmetric Decryption of the File (on Receiver)
+
+```bash
+openssl enc -d -aes-256-cbc -in file_to_send.txt.enc -out file_to_receive.txt -pass file:secret_key.bin
+```
+
+## 8.  Verify the File (on Receiver)
+
+```
+bash file_to_send.txt
+```
+nano 
 
 ## 1. 
 
