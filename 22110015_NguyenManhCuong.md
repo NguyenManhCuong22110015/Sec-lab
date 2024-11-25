@@ -1,4 +1,4 @@
-# Lab #1,22110015, Nguyen Manh Cuong, INSE330380E_01FIE
+# Lab #2,22110015, Nguyen Manh Cuong, INSE330380E_01FIE
 # Task 1: Transfer files between computers  
 **Question 1**: 
 Conduct transfering a single plaintext file between 2 computers, 
