@@ -37,7 +37,7 @@ docker inspect receiver
 docker inspect sender
 ```
 
-with : ip `sender` : 172.17.0.2 and ip  `receiver`: 172.17.0.1
+to get : ip `sender` : 172.17.0.2 and ip  `receiver`: 172.17.0.1
 
 ## 3. Prepare a plaintext file
 
