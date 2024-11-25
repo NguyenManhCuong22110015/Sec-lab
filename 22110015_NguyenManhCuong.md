@@ -107,7 +107,16 @@ nano file.txt.hash
 
 ![image](https://github.com/user-attachments/assets/02abab0c-4483-4e28-a4cc-5fe148c34e42)
 
-The hashes match, confirming that the file is intact and authentic.
+- The hashes match, confirming that the file is intact and authentic.
+
+- Finally:
+
+```bash
+nano plaintext.txt
+```
+
+![image](https://github.com/user-attachments/assets/5eb2248e-11db-443d-9265-52384c8bc101)
+
  
 # Task 2: Transfering encrypted file and decrypt it with hybrid encryption. 
 **Question 1**:
