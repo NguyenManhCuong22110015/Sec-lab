@@ -71,6 +71,63 @@ All steps are made manually with openssl at the terminal of each computer.
 
 **Answer 1**:
 
+## 1. Generate RSA Keys (on both computers)
+
+- Each computer needs a pair of RSA keys: a public key (for encryption) and a private key (for decryption).
+
+
+- In inner-172.16.10.100
+
+```
+openssl genpkey -algorithm RSA -out private_key.pem -aes256
+
+openssl rsa -pubout -in private_key.pem -out public_key.pem
+```
+
+![image](https://github.com/user-attachments/assets/9442ac14-3fc2-4143-91a4-6f3e3b7d5dc0)
+
+
+- In outsider-10.9.0.5
+
+```
+openssl genpkey -algorithm RSA -out private_key.pem -aes256
+
+openssl rsa -pubout -in private_key.pem -out public_key.pem
+
+```
+
+![image](https://github.com/user-attachments/assets/c56d35fb-cbb3-4caa-a2f3-a5a4369c0683)
+
+
+## 2. Prepare the File
+
+```
+echo "This is a secret message." > file_to_send.txt
+```
+
+## 3. Symmetric Encryption (on Sender (inner-172.16.10.100))
+
+- We will symmetrically encrypt the file using a randomly generated secret key. This key will be used to encrypt the file contents. The secret key itself will be encrypted using RSA.
+
+```bash
+openssl rand -out secret_key.bin 32
+
+openssl enc -aes-256-cbc -in file_to_send.txt -out file_to_send.txt.enc -pass file:secret_key.bin
+```
+
+![image](https://github.com/user-attachments/assets/38bda322-32d1-448a-b067-8a9ef7125401)
+
+
+## 4. Encrypt the Secret Key (on Sender)
+
+- Now we encrypt the secret_key.bin using the public key of Computer B, so only Computer B can decrypt it with its private key.
+
+```bash
+openssl rsautl -encrypt -inkey public_key.pem -pubin -in secret_key.bin -out secret_key.bin.enc
+```
+
+
+
 ## 1. 
 
 # Task 3: Firewall configuration
