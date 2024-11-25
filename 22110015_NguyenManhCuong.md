@@ -169,3 +169,18 @@ nano
 **Question 1**:
 From VMs of previous tasks, install iptables and configure one of the 2 VMs as a web and ssh server. Demonstrate your ability to block/unblock http, icmp, ssh requests on the other host.
 
+**Answer 1**:
+
+## 1. Install iptables on both VMs
+
+```bash
+sudo apt update
+sudo apt install iptables
+```
+
+![image](https://github.com/user-attachments/assets/8df3ae26-0188-472a-9aeb-ee62e0030e0a)
+
+
+
+
+
