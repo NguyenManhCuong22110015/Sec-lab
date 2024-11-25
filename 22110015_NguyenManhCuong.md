@@ -19,13 +19,13 @@ docker exec -it  --user root inner-172.16.10.100 sh -l
 docker exec -it  --user root outsider-10.9.0.5 sh -l
 ```
 
-## 1. Create a plaintext file named `file.txt`
+## 3. Create a plaintext file named `file.txt`
 * First, we write a message and save it in a text file:
 ```bash
 echo "This is a test file." > file.txt
 ```
 
-## 2. Create a file hash by `openssl`
+## 4. Create a file hash by `openssl`
 
 ```bash
 openssl sha256 file.txt > file.txt.hash
@@ -33,11 +33,15 @@ openssl sha256 file.txt > file.txt.hash
 ![image](https://github.com/user-attachments/assets/3a8d2523-ebd7-4c9f-ae76-b87c83c3c980)
 
 
-## 3. Install SSH
+## 5. Transfering `file.txt` and `file.txt.hash`
 
 ```bash
-apt-get install openssh-server
+ docker cp inner-172.16.10.100:/tsec-lab/file.txt ./file.tx
+ docker cp inner-172.16.10.100:/tsec-lab/file.txt.hash ./file.tx.hash
 ```
+![image](https://github.com/user-attachments/assets/10fa66d5-c3e1-46b6-b222-1b2584ac01e1)
+![image](https://github.com/user-attachments/assets/c98f1d7b-029a-49de-8d06-42d16d169571)
+
 
 
 
