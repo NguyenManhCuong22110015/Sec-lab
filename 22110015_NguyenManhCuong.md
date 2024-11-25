@@ -7,73 +7,107 @@ then veryfing at receiving side.
 
 **Answer 1**:
 
-## 1. Set up 2 computers in docker 
-
-- Clone file from github
+## 1. Pull docker ubuntu
 
 ```bash
-git clone https://github.com/quang-ute/Security-labs
+docker pull ubuntu
 ```
 
-and run docker in  
+## 2. Create 2 computers by ubuntu
 
 ```bash
-cd Network/firewall
-docker-compose up -d
+docker run --name sender -it ubuntu
+docker run --name receiver -it ubuntu
 ```
 
-![image](https://github.com/user-attachments/assets/1922078c-1684-44f3-9955-205fcf3b112e)
+![image](https://github.com/user-attachments/assets/03e8c95b-39f5-444a-8fac-30aa25ea6981)
 
-## 2. Use 2 computers
+
+and after that
 
 ```bash
-docker exec -it  --user root inner-172.16.10.100 sh -l
-docker exec -it  --user root outsider-10.9.0.5 sh -l
+docker run -i receiver
+docker run -i sender
 ```
 
-## 3. Create a plaintext file named `file.txt`
-* First, we write a message and save it in a text file:
+- finally 
+
 ```bash
-echo "This is a test file." > file.txt
+docker inspect receiver
+docker inspect sender
 ```
 
-## 4. Create a file hash by `openssl`
+with : ip `sender` : 172.17.0.2 and ip  `receiver`: 172.17.0.1
+
+## 3. Prepare a plaintext file
+
+```bash
+echo "THis is plain text file " > plaintext.txt
+```
+
+![image](https://github.com/user-attachments/assets/1860f0f3-c86c-4359-9a1f-555cc4e8501c)
+
+## 4. Create a file hash by openssl
+
+- First, dowload openssl
+  
+```bash
+apt install openssl -y
+```
+
+- Create a file hash by openssl
 
 ```bash
 openssl sha256 file.txt > file.txt.hash
 ```
-![image](https://github.com/user-attachments/assets/3a8d2523-ebd7-4c9f-ae76-b87c83c3c980)
+
+![image](https://github.com/user-attachments/assets/89d12d40-a230-4be7-91d6-303a94afe9c7)
 
 
-## 5. Transfering `file.txt` and `file.txt.hash`
+## 5. Transfering file.txt and file.txt.hash by `Netcat`
 
-```bash
- docker cp inner-172.16.10.100:/tsec-lab/file.txt ./file.tx
- docker cp inner-172.16.10.100:/tsec-lab/file.txt.hash ./file.tx.hash
-```
-![image](https://github.com/user-attachments/assets/10fa66d5-c3e1-46b6-b222-1b2584ac01e1)
-![image](https://github.com/user-attachments/assets/c98f1d7b-029a-49de-8d06-42d16d169571)
-
+- First, dowload netcat
 
 ```bash
- docker cp file.tx outsider-10.9.0.5:/res/file.txt
- docker cp file.tx.hash outsider-10.9.0.5:/res/file.txt.hash
-```
-![image](https://github.com/user-attachments/assets/2dc2584f-01dd-4f86-bef2-4a47881bf1c8)
-
-- Check in `outsider-10.9.0.5:/res`
-- 
-![image](https://github.com/user-attachments/assets/5daf53b8-722f-487c-8d67-5af18d240765)
-
-## 6.  Veryfing at receiving side
-
-```
-openssl sha256 file.txt > check.txt.hash
+sudo apt install netcat
 ```
 
-![image](https://github.com/user-attachments/assets/0d0908c0-5057-4797-8c28-6e963adafe49)
+- In receiver :
 
- If the hashes of the original and received files are the same, you can trust that the file has not been tampered with during transfer and is intact.
+```bash
+nc -l -p 1234 > plaintext.txt
+nc -l -p 1234 > file.txt.hash
+```
+
+
+- In sender: 
+
+```bash
+nc 172.17.0.1 1234 < plaintext.txt
+nc 172.17.0.1 1234 < file.txt.hash
+```
+
+![image](https://github.com/user-attachments/assets/159baf6c-a6e3-4aad-a9ee-77c8db8869a5)
+
+## 6. Veryfing at receiving side.
+
+- Generate the Hash of the Received File 
+
+```bash
+openssl sha256 plaintext.txt
+```
+
+![image](https://github.com/user-attachments/assets/2997ebf4-f0e6-4ad7-977b-2eda575d444c)
+
+- Open the Sent Hash File
+
+```bash
+nano file.txt.hash
+```
+
+![image](https://github.com/user-attachments/assets/02abab0c-4483-4e28-a4cc-5fe148c34e42)
+
+The hashes match, confirming that the file is intact and authentic.
  
 # Task 2: Transfering encrypted file and decrypt it with hybrid encryption. 
 **Question 1**:
