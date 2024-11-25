@@ -117,89 +117,174 @@ All steps are made manually with openssl at the terminal of each computer.
 
 **Answer 1**:
 
-## 1. Generate RSA Keys (on both computers)
+## 1. Prepare
 
-- Each computer needs a pair of RSA keys: a public key (for encryption) and a private key (for decryption).
-
-
-- In inner-172.16.10.100
-
-```
-openssl genpkey -algorithm RSA -out private_key.pem -aes256
-
-openssl rsa -pubout -in private_key.pem -out public_key.pem
-```
-
-![image](https://github.com/user-attachments/assets/9442ac14-3fc2-4143-91a4-6f3e3b7d5dc0)
-
-
-- In outsider-10.9.0.5
-
-```
-openssl genpkey -algorithm RSA -out private_key.pem -aes256
-
-openssl rsa -pubout -in private_key.pem -out public_key.pem
-
-```
-
-![image](https://github.com/user-attachments/assets/c56d35fb-cbb3-4caa-a2f3-a5a4369c0683)
-
-
-## 2. Prepare the File
-
-```
-echo "This is a secret message." > file_to_send.txt
-```
-
-## 3. Symmetric Encryption (on Sender (inner-172.16.10.100))
-
-- We will symmetrically encrypt the file using a randomly generated secret key. This key will be used to encrypt the file contents. The secret key itself will be encrypted using RSA.
+-  Create a file named message.txt and writes the secret message "This is a secret message." into it. 
 
 ```bash
-openssl rand -out secret_key.bin 32
-
-openssl enc -aes-256-cbc -in file_to_send.txt -out file_to_send.txt.enc -pass file:secret_key.bin
+echo "This is a secret message." > message.txt 
 ```
 
 
+## 2.  Generate RSA Key Pair on `Receiver`
 
-## 4. Encrypt the Secret Key (on Sender)
-
-- Now we encrypt the secret_key.bin using the public key of Computer B, so only Computer B can decrypt it with its private key.
+- Generate a 2048-bit RSA private key. This is the private key used by the Receiver:
 
 ```bash
-openssl rsautl -encrypt -inkey public_key.pem -pubin -in secret_key.bin -out secret_key.bin.enc
+openssl genrsa -out private_key.pem 2048
 ```
+- 
 
-![image](https://github.com/user-attachments/assets/38bda322-32d1-448a-b067-8a9ef7125401)
 
+![image](https://github.com/user-attachments/assets/04191671-0758-403e-a68f-4f6a2fea76c4)
 
-## 5.  Transfer the Files
+  
+- Extract the corresponding public key:
 
 ```bash
-scp file_to_send.txt.enc secret_key.bin.enc outsider-10.9.0.5@10.9.0.5:/ret
+openssl rsa -in private_key.pem -pubout -out public_key.pem
 ```
 
-## 6. Decrypt the Secret Key (on Receiver)
+![image](https://github.com/user-attachments/assets/ad6c5893-8f4f-41f5-ae96-ca5d59d84969)
+
+
+## 3.The `Receiver` shares the public_key.pem file with the `Sender` using `netcat`
+
+- In `Receiver` :
 
 ```bash
-openssl rsautl -decrypt -inkey private_key.pem -in secret_key.bin.enc -out secret_key.bin
+nc 172.17.0.3 1234 <  public_key.pem
 ```
 
-## 7.  Symmetric Decryption of the File (on Receiver)
+- In `Sender` :
 
 ```bash
-openssl enc -d -aes-256-cbc -in file_to_send.txt.enc -out file_to_receive.txt -pass file:secret_key.bin
+nc -l -p 1234 >  public_key.pem
 ```
 
-## 8.  Verify the File (on Receiver)
+![image](https://github.com/user-attachments/assets/2d8cce93-cb32-4787-96a2-5f4d244dd8fb)
 
-```
-bash file_to_send.txt
-```
-nano 
 
-## 1. 
+
+## 4. Create and Encrypt Symmetric Key on `Sender`
+
+
+- Create a symmetric AES key (32 bytes for AES-256):
+
+```bash
+oppenssl rand -base64 32 > symmetric_key.txt
+```
+
+
+![image](https://github.com/user-attachments/assets/1d24c7ec-2af9-49e5-98d0-4ac7aaf009c1)
+
+
+- Encrypt the symmetric key using Computer B’s public RSA key. The Sender encrypts the symmetric key using the Receiver's public RSA key. The encrypted symmetric key is saved to encrypted_key.bin.
+
+```bash
+openssl pkeyutl -encrypt -inkey public_key.pem -pubin -in symmetric_key.txt -out encrypted_key.bin
+```
+
+- `openssl pkeyutl`: This is the command used to perform public key operations like encryption or decryption using RSA or other asymmetric algorithms.
+- `encrypt`: This flag indicates that the operation is encryption. You're encrypting data with the public key.
+- `inkey public_key.pem`: Specifies the input key file. Here, it's the public key file (public_key.pem) that will be used for encryption.
+- `pubin`: This flag indicates that the provided key is a public key (as opposed to a private key).
+- `in symmetric_key.txt`: Specifies the input file, which in this case is the symmetric key (symmetric_key.txt) that you want to encrypt.
+- `out encrypted_key.bin`: Specifies the output file where the encrypted symmetric key will be saved (encrypted_key.bin).
+
+![image](https://github.com/user-attachments/assets/b2df5fdf-52d3-4aa5-b392-3e619d009e84)
+
+
+- Encrypt the file message.txt using the symmetric AES key. The Sender encrypts message.txt using AES-256-CBC with the symmetric key stored in symmetric_key.txt. The encrypted file is saved as encrypted_file.bin.
+
+```bash
+openssl enc -aes-256-cbc -salt -in message.txt -out encrypted_file.bin -pass file:symmetric_key.txt -pbkdf2
+```
+
+- `aes-256-cbc:` Specifies the encryption algorithm and mode.
+- `salt`: This flag tells OpenSSL to use a salt when generating the encryption key. Salt is random data added to the input before encryption to ensure that identical plaintexts result in different ciphertexts, preventing certain types of attacks.
+- `in message.txt`: Specifies the input file to be encrypted (in this case, message.txt).
+- `out encrypted_file.bin`: Specifies the output file for the encrypted data (saved as encrypted_file.bin).
+- `pass file:symmetric_key.txt`: The flag -pass is used to provide a passphrase for encryption. Here, it points to the file symmetric_key.txt, which contains the symmetric key used for encryption.
+- `pbkdf2`: This option enables PBKDF2 (Password-Based Key Derivation Function 2), which is a cryptographic algorithm to derive keys from passwords. It adds extra security by using multiple iterations and salt to generate the ke
+
+
+![image](https://github.com/user-attachments/assets/ac9458d1-d50d-4757-b4c5-c7a7b4454d29)
+
+
+## 5. `The Sender` send both `encrypted_key.bin` and `encrypted_file.bin` to `the Receiver`
+
+- In receiver. The Receiver listens on port 1234 for both the encrypted symmetric key (encrypted_key.bin) and the encrypted file (encrypted_file.bin).: 
+
+```bash
+nc -l -p 1234 > encrypted_key.bin
+nc -l -p 1234 > encrypted_file.bin
+```
+
+- In sender. The Sender sends both the encrypted_key.bin and encrypted_file.bin to the Receiver over netcat to the IP address 172.17.0.2 on port 1234
+
+```bash
+nc 172.17.0.2 1234 < encrypted_key.bin
+nc 172.17.0.2 1234 < encrypted_file.bin
+```
+
+- 2 files have been sent successfully
+  
+![image](https://github.com/user-attachments/assets/ddf3cdd0-2222-4ff8-8772-02b89c28d100)
+
+  
+
+## 6. Decrypt Symmetric Key on Receiver
+
+- The Receiver uses their private RSA key to decrypt the encrypted_key.bin file, retrieving the symmetric key and saving it to symmetric_key.txt
+
+```bash
+openssl pkeyutl -decrypt -inkey private_key.pem -in encrypted_key.bin -out symmetric_key.txt
+```
+- `decrypt`: This flag indicates that the operation is decryption. You're decrypting the data using the private key.
+- `inkey private_key.pem`: Specifies the private key file used for decryption (private_key.pem).
+- `in encrypted_key.bin`: Specifies the encrypted data file (encrypted_key.bin) that you want to decrypt.
+- `out symmetric_key.txt`: Specifies the output file where the decrypted symmetric key will be saved (symmetric_key.txt
+
+
+![image](https://github.com/user-attachments/assets/cc8fb5c5-dc48-4f04-9620-7f038bd882bc)
+
+![image](https://github.com/user-attachments/assets/154b6024-773f-4ec4-93ad-d5c1813418b1)
+
+
+## 7. Decrypt the File on Reciver
+
+- The Receiver decrypts the encrypted file encrypted_file.bin using the symmetric key stored in symmetric_key.txt and saves the decrypted content to decrypted_example.txt.
+
+```bash
+openssl enc -d -aes-256-cbc -in encrypted_file.bin -out decrypted_example.txt -pass file:symmetric_key.txt -pbkdf2
+```
+
+- `d`: This flag specifies that the operation is decryption (as opposed to encryption).
+- `aes-256-cbc`: Specifies the algorithm (AES) and mode (CBC) used for decryption, just like in the encryption process.
+- `in encrypted_file.bin`: Specifies the input file to be decrypted (encrypted_file.bin).
+- `out decrypted_example.txt`: Specifies the output file where the decrypted content will be saved (decrypted_example.txt).
+- `pass file:symmetric_key.txt`: Specifies the file that contains the symmetric key to be used for decryption (symmetric_key.txt)
+
+![image](https://github.com/user-attachments/assets/a4aa1c95-0635-49c6-b79b-943d5bea44dc)
+
+
+and 
+
+```bash
+nano decrypted_example.txt
+```
+
+![image](https://github.com/user-attachments/assets/6ec0a3cc-743d-40a1-84c0-1c559f790ec7)
+
+### Conclusion
+
+- The public key is shared securely between the Sender and the Receiver.
+- The symmetric key used for file encryption is encrypted using the Receiver's public RSA key and sent to the Receiver.
+- The file (message.txt) is encrypted using the symmetric key, ensuring confidentiality.
+- The Receiver successfully decrypts both the symmetric key and the file, retrieving the original message "This is a secret message."
+
+
 
 # Task 3: Firewall configuration
 **Question 1**:
